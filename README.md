@@ -1,5 +1,19 @@
-# cliy
-Command line interface coming soon.
+
+# Cliy
+Command Line Interface Library.
+
+## API
+- `operations: Array`
+	- `operation: Object`
+		- `key: String`
+		- `name: String`
+		- `method: AsyncFunction`
+- `add: AsyncFunction`
+- `find: AsyncFunction`
+- `execute: AsyncFunction`
+- `parse: AsyncFunction`
+- `has: AsyncFunction`
+- `run: AsyncFunction`
 
 ## Authors
 [AlexanderElias](https://github.com/AlexanderElias)
