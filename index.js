@@ -2,9 +2,9 @@
 class Cliy {
 
 	constructor(options) {
-		options = options || {};
-		this.name = options.name || 'program';
-		this.version = options.version || '0.0.0';
+
+		this.name = 'program';
+		this.version = '0.0.0';
 		this.operations = [
 			{
 				key: 'v',
@@ -30,6 +30,15 @@ class Cliy {
 				}.bind(this)
 			}
 		];
+
+		this.setup(options);
+	}
+
+	async setup(options) {
+		options = options || {};
+		this.name = options.name || this.name;
+		this.version = options.version || this.version;
+		this.operations = options.operations ? this.add(options.operations) : this.operations;
 	}
 
 	async add(data) {

@@ -3,11 +3,14 @@
 Command Line Interface Library.
 
 ## API
+- `name: String` (default: program)
+- `version: String` (default: 0.0.0)
 - `operations: Array`
 	- `operation: Object`
 		- `key: String`
 		- `name: String`
 		- `method: AsyncFunction`
+- `setup: AsyncFunction`
 - `add: AsyncFunction`
 - `find: AsyncFunction`
 - `execute: AsyncFunction`

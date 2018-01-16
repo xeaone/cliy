@@ -5,18 +5,21 @@ const Package = require('./package');
 
 Promise.resolve().then(async function () {
 
-	const options = { name: 'test', version: Package.version };
-	const program = new Cliy(options);
+	const program = new Cliy();
 
-	await program.add([
-		{
-			key: 't',
-			name: 'test',
-			method: async function () {
-				console.log('test');
+	await program.setup({
+		name: 'test',
+		version: Package.version,
+		operations: [
+			{
+				key: 't',
+				name: 'test',
+				method: async function () {
+					console.log('test');
+				}
 			}
-		}
-	]);
+		]
+	});
 
 	await program.run(process.argv);
 
