@@ -1,10 +1,11 @@
 
 class Cliy {
 
-	constructor(options) {
+	constructor(data) {
 
 		this.name = 'program';
 		this.version = '0.0.0';
+
 		this.operations = [
 			{
 				key: 'v',
@@ -31,32 +32,28 @@ class Cliy {
 			}
 		];
 
-		this.setup(options);
+		this.setup(data);
 	}
 
-	async setup(options) {
-		options = options || {};
-		this.name = options.name || this.name;
-		this.version = options.version || this.version;
-		if (options.operations) this.add(options.operations);
+	async setup(data) {
+		data = data || {};
+		this.name = data.name || this.name;
+		this.version = data.version || this.version;
+		if (data.operations) await this.add(data.operations);
 	}
 
 	async add(data) {
-		if (!data) throw new Error('Operation required');
+		if (!data || typeof data !== 'object') throw new Error('Operation required');
 
 		if (data.constructor === Array) {
-
 			for (let operation of data) {
 				await this.add(operation);
 			}
-
-			return;
+		} else {
+			let exists = await this.has(data.name, data.key);
+			if (exists) throw new Error('Operation name or key exists');
+			this.operations.push(data);
 		}
-
-		let exists = await this.has(data.name, data.key);
-		if (exists) throw new Error('Operation name or key exists');
-
-		this.operations.push(data);
 	}
 
 	async find(name, key) {

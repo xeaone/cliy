@@ -3,7 +3,7 @@
 const Cliy = require('./index');
 const Package = require('./package');
 
-Promise.resolve().then(async function () {
+(async function() {
 
 	const program = new Cliy();
 
@@ -20,9 +20,8 @@ Promise.resolve().then(async function () {
 			}
 		]
 	});
-
 	await program.run(process.argv);
 
-}).catch(function (error) {
-	console.error(error);
+}()).catch(function (error) {
+	console.log(error);
 });
