@@ -38,7 +38,7 @@ class Cliy {
 		options = options || {};
 		this.name = options.name || this.name;
 		this.version = options.version || this.version;
-		this.operations = options.operations ? this.add(options.operations) : this.operations;
+		if (options.operations) this.add(options.operations);
 	}
 
 	async add(data) {
