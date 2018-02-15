@@ -17,27 +17,27 @@ const Package = require('./package');
 			{
 				key: '1',
 				name: 'one',
-				method: async function (argument, returned, operations) {
+				method: async function (argument, values) {
 					console.log(`one: ${argument}`);
-					console.log(`one: ${returned}`);
+					console.log(`one: ${JSON.stringify(values)}`);
 					return 'one';
 				},
 				operations: [
 					{
 						key: '2',
 						name: 'two',
-						method: async function (argument, returned, operations) {
+						method: async function (argument, values) {
 							console.log(`two: ${argument}`);
-							console.log(`two: ${returned}`);
+							console.log(`two: ${JSON.stringify(values)}`);
 							return 'two'
 						}
 					},
 					{
 						key: '3',
 						name: 'three',
-						method: async function (argument, returned, operations) {
+						method: async function (argument, values) {
 							console.log(`three: ${argument}`);
-							console.log(`three: ${returned}`);
+							console.log(`three: ${JSON.stringify(values)}`);
 							return 'three'
 						}
 					}

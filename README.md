@@ -15,9 +15,9 @@ Command Line Interface Library.
 		- `operations: Array`
 		- `description: String`
 		- `method: AsyncFunction`
-			- `argument: Any` The argument passed in by the user.
-			- `returned: Any` The returned value of a previous method.
-			- `operations: Array` The operations in order of invocation.
+			- `argument: String` The argument passed in by the user.
+			- `values: Object` The name value pair of the returned values from previous methods.
+			<!-- - `operations: Array` The operations in order of invocation. -->
 - `setup: AsyncFunction`
 	- `options: Object`
 - `has: AsyncFunction`

@@ -112,18 +112,28 @@ class Cliy {
 				await this.add(operation, operations);
 			}
 		} else if (data.constructor === Object) {
-			let exists = await this.has(data.name || data.key);
-			if (exists) throw new Error('Operation name or key exists');
+			if (!data.name) throw new Error('Operation name required');
+
+			if (data.key) {
+				let keyExists = await this.has(data.key);
+				if (keyExists) throw new Error('Operation key exists');
+			}
+
+			let nameExists = await this.has(data.name);
+			if (nameExists) throw new Error('Operation name exists');
+
 			await this._defaults(data);
+
 			operations.push(data);
 		} else {
-			throw new Error('Invalid operation type');
+			throw new Error('Operation type invalid');
 		}
 
 	}
 
 	async execute (operations) {
-		let values = [], value;
+		let values = {};
+		let value, name;
 		let parent = operations[0];
 		let children = operations.slice(1);
 
@@ -134,13 +144,16 @@ class Cliy {
 		for (let child of children) {
 
 			if (child.method) {
-				value = await child.method.call(null, child.value, value, operations);
+				if (name) values[name] = value;
+				value = await child.method.call(null, child.value, values);
+				name = child.name;
 			}
 
 		}
 
 		if (parent.method) {
-			await parent.method.call(null, parent.value, value, operations);
+			if (name) values[name] = value;
+			await parent.method.call(null, parent.value, values);
 		}
 
 	}
