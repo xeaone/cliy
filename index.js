@@ -1,7 +1,7 @@
 
 class Cliy {
 
-	constructor(data) {
+	constructor (data) {
 
 		this.name = 'program';
 		this.version = '0.0.0';
@@ -35,14 +35,14 @@ class Cliy {
 		this.setup(data);
 	}
 
-	async setup(data) {
+	async setup (data) {
 		data = data || {};
 		this.name = data.name || this.name;
 		this.version = data.version || this.version;
 		if (data.operations) await this.add(data.operations);
 	}
 
-	async add(data) {
+	async add (data) {
 		if (!data || typeof data !== 'object') throw new Error('Operation required');
 
 		if (data.constructor === Array) {
@@ -56,7 +56,7 @@ class Cliy {
 		}
 	}
 
-	async find(name, key) {
+	async find (name, key) {
 		if (!name && !key) throw new Error('Missing name or key parameter');
 
 		for (let operation of this.operations) {
@@ -68,7 +68,7 @@ class Cliy {
 		return null;
 	}
 
-	async execute(name, key, value) {
+	async execute (name, key, value) {
 		let result;
 		let operation = await this.find(name, key);
 
@@ -80,7 +80,7 @@ class Cliy {
 		}
 	}
 
-	async parse(args) {
+	async parse (args) {
 		let result = [];
 
 		for (let arg of args) {
@@ -108,13 +108,13 @@ class Cliy {
 		return result;
 	}
 
-	async has(name, key) {
+	async has (name, key) {
 		if (!name && !key) throw new Error('Missing name or key parameter');
 		let result = await this.find(name, key);
 		return result ? true : false;
 	}
 
-	async run(argv) {
+	async run (argv) {
 		this.argv = argv;
 		this.path = argv[0];
 		this.file = argv[1];
