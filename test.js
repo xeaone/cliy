@@ -9,14 +9,33 @@ const Package = require('./package');
 
 	await program.setup({
 		name: 'test',
+		order: '',
 		version: Package.version,
 		operations: [
 			{
-				key: 't',
-				name: 'test',
+				key: '1',
+				name: 'one',
 				method: async function () {
-					console.log('test');
-				}
+					console.log(arguments);
+				},
+				options: [
+					{
+						key: '2',
+						name: 'two',
+						method: async function () {
+							console.log(arguments);
+							return 'two'
+						}
+					},
+					{
+						key: '3',
+						name: 'three',
+						method: async function () {
+							console.log(arguments);
+							return 'three'
+						}
+					}
+				]
 			}
 		]
 	});
