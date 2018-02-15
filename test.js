@@ -9,7 +9,7 @@ const Package = require('./package');
 
 	await program.setup({
 		name: 'test',
-		order: '',
+		// order: '', // TODO added feature
 		version: Package.version,
 		operations: [
 			{
@@ -40,7 +40,7 @@ const Package = require('./package');
 			}
 		]
 	});
-	
+
 	await program.run(process.argv);
 
 }()).catch(function (error) {

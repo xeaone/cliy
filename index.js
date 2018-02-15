@@ -10,29 +10,61 @@ class Cliy {
 			{
 				key: 'v',
 				name: 'version',
-				method: async function () {
-					console.log(`${this.version}`);
-				}.bind(this)
+				method: this._version.bind(this)
 			},
 			{
 				key: 'h',
 				name: 'help',
-				method: async function () {
-					let text = `\n   Usage: ${this.name} <operation> [...]\n\n   Operations:`;
-
-					for (let operation of this.operations) {
-						text += '\n      ';
-						if (operation.key) text += `-${operation.key} `;
-						if (operation.name) text += `--${operation.name} `;
-						if (operation.description) text += `${operation.description} `;
-					}
-
-					console.log(text);
-				}.bind(this)
+				method: this._help.bind(this)
 			}
 		];
 
 		this.setup(data);
+	}
+
+	async _version () {
+		console.log(`${this.version}`);
+	}
+
+	async _help (operation) {
+		let operations;
+		let text = `\n   Usage: ${this.name}`;
+
+		if (operation) {
+			operations = operation.operations;
+			text += ` ${operation.name} [operations]`
+		} else {
+			text += ` <operation>`
+			operations = this.operations;
+		}
+
+		text += ' [...]\n\n   Operations:';
+
+		for (let operation of operations) {
+			text += '\n      ';
+			if (operation.key) text += `-${operation.key} `;
+			if (operation.name) text += `--${operation.name} `;
+			if (operation.description) text += `${operation.description} `;
+		}
+
+		text += '\n';
+
+		console.log(text);
+	}
+
+	async _defaults (data) {
+		if (!data.operations || !data.operations.length) return;
+
+		data.operations.unshift({
+			key: 'h',
+			name: 'help',
+			method: this._help.bind(this, data)
+		});
+
+		for (let operation of data.operations) {
+			this._defaults(operation);
+		}
+
 	}
 
 	async setup (data) {
@@ -42,25 +74,27 @@ class Cliy {
 		if (data.operations) await this.add(data.operations);
 	}
 
-	async add (data) {
-		if (!data || typeof data !== 'object') throw new Error('Operation required');
+	async has (data, operations) {
+		if (!data) throw new Error('Missing name or key parameter');
 
-		if (data.constructor === Array) {
-			for (let operation of data) {
-				await this.add(operation);
+		operations = operations || this.operations;
+
+		for (let operation of operations) {
+			if (data === 'h' || data === 'help' || operation.name === data || operation.key === data) {
+				return true;
 			}
-		} else {
-			let exists = await this.has(data.name, data.key);
-			if (exists) throw new Error('Operation name or key exists');
-			this.operations.push(data);
 		}
+
+		return false;
 	}
 
-	async find (name, key) {
-		if (!name && !key) throw new Error('Missing name or key parameter');
+	async find (data, operations) {
+		if (!data) throw new Error('Missing name or key parameter');
 
-		for (let operation of this.operations) {
-			if (operation.name === name || operation.key === key) {
+		operations = operations || this.operations;
+
+		for (let operation of operations) {
+			if (operation.name === data || operation.key === data) {
 				return operation;
 			}
 		}
@@ -68,49 +102,91 @@ class Cliy {
 		return null;
 	}
 
-	async execute (name, key, value) {
-		let operation = await this.find(name, key);
+	async add (data, operations) {
+		if (!data || typeof data !== 'object') throw new Error('Operation required');
 
-		if (!operation) throw new Error(`Cant find operation ${name}`);
-		if (!operation.method) return;
+		operations = operations || this.operations;
 
-		return await operation.method.apply(null, value);
+		if (data.constructor === Array) {
+			for (let operation of data) {
+				await this.add(operation, operations);
+			}
+		} else if (data.constructor === Object) {
+			let exists = await this.has(data.name || data.key);
+			if (exists) throw new Error('Operation name or key exists');
+			await this._defaults(data);
+			operations.push(data);
+		} else {
+			throw new Error('Invalid operation type');
+		}
+
+	}
+
+	async execute (operations) {
+		let values = [];
+		let parent = operations.shift();
+
+		if (!parent) {
+			throw new Error(`Cant find operation ${parent.name}`);
+		}
+
+		for (let child of operations) {
+
+			if (child.method) {
+				let value = await child.method.apply(null, [child.value].concat(values));
+				values.push(value);
+			}
+
+		}
+
+		if (parent.method) {
+			let value = await parent.method.apply(null, values);
+			values.push(value);
+		}
+
 	}
 
 	async parse (args) {
 		let result = [];
 
 		for (let arg of args) {
+
 			if (arg.slice(0, 2) === '--') {
 				let name = arg.slice(2);
-				result.push({ name: name });
+
+				let operations = result.length ? result[0].operations : this.operations;
+				let operation = await this.find(name, operations);
+
+				result.push(operation);
+
 			} else if (arg.slice(0, 1) === '-') {
 				let keys = arg.split('').slice(1);
+
 				for (let key of keys) {
-					result.push({ key: key });
+
+					let operations = result.length ? result[0].operations : this.operations;
+					let operation = await this.find(key, operations);
+
+					result.push(operation);
+
 				}
+
 			} else {
+
 				if (result[result.length-1].value) {
 					result[result.length-1].value += (' ' + arg);
 				} else {
 					result[result.length-1].value = arg;
 				}
 			}
+
+
 		}
 
 		return result;
 	}
 
-	async has (name, key) {
-		if (!name && !key) throw new Error('Missing name or key parameter');
-		let result = await this.find(name, key);
-		return result ? true : false;
-	}
-
-	// TODO print opts sort by h then by order
-
 	async run (argv) {
-		let values = [];
 
 		this.argv = argv;
 		this.path = argv[0];
@@ -118,20 +194,26 @@ class Cliy {
 
 		let operations = await this.parse(argv.slice(2));
 
-		let sorted = operations.find(function (data) {
-			return data.key === 'h' || data.name.toLowerCase() === 'help';
+		// operations.sort(function (a, b) {
+		// 	console.log(a);
+		// 	console.log(b);
+		// 	return 0;
+		// });
+
+		let help = operations.find(function (data) {
+			return data.key === 'h' || data.name === 'help';
 		});
 
-		for (let operation of operations) {
+		if (help) {
 
-			let value = await this.execute(
-				operation.name,
-				operation.key,
-				[operation.value].concat(values)
-			);
+			if (operations.length === 1) {
+				await this._help();
+			} else {
+				await this._help(operations[0]);
+			}
 
-			values.push(value);
-
+		} else {
+			await this.execute(operations)
 		}
 
 	}

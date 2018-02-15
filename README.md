@@ -2,6 +2,9 @@
 # Cliy
 Command Line Interface Library.
 
+## Features
+- Auto created help menus
+
 ## API
 - `name: String` (default: program)
 - `version: String` (default: 0.0.0)
@@ -9,14 +12,26 @@ Command Line Interface Library.
 	- `operation: Object`
 		- `key: String`
 		- `name: String`
+		- `operations: Array`
+		- `description: String`
 		- `method: AsyncFunction`
 - `setup: AsyncFunction`
-- `add: AsyncFunction`
-- `find: AsyncFunction`
-- `execute: AsyncFunction`
-- `parse: AsyncFunction`
+	- `options: Object`
 - `has: AsyncFunction`
+	- `data: String` Name or key
+- `find: AsyncFunction`
+	- `data: String` Name or key
+<!-- - `remove: AsyncFunction`
+	- `operation: Object` -->
+- `add: AsyncFunction`
+	- `operation: Object`
+- `execute: AsyncFunction`
+	- `operations: Array`
+		- `operation: Object`
+- `parse: AsyncFunction`
+	- `args: Array`
 - `run: AsyncFunction`
+	- `arguments: process.argv`
 
 ## Authors
 [AlexanderElias](https://github.com/AlexanderElias)
