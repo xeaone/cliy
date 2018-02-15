@@ -16,14 +16,15 @@ const Package = require('./package');
 				key: '1',
 				name: 'one',
 				method: async function () {
-					console.log(arguments);
+					console.log(`one: ${JSON.stringify(arguments)}`);
+					return 'one';
 				},
-				options: [
+				operations: [
 					{
 						key: '2',
 						name: 'two',
 						method: async function () {
-							console.log(arguments);
+							console.log(`two: ${JSON.stringify(arguments)}`);
 							return 'two'
 						}
 					},
@@ -31,7 +32,7 @@ const Package = require('./package');
 						key: '3',
 						name: 'three',
 						method: async function () {
-							console.log(arguments);
+							console.log(`three: ${JSON.stringify(arguments)}`);
 							return 'three'
 						}
 					}
@@ -39,6 +40,7 @@ const Package = require('./package');
 			}
 		]
 	});
+	
 	await program.run(process.argv);
 
 }()).catch(function (error) {
