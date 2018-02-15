@@ -3,6 +3,8 @@
 const Cliy = require('./index');
 const Package = require('./package');
 
+// node test -12 test la
+
 (async function() {
 
 	const program = new Cliy();
@@ -15,24 +17,27 @@ const Package = require('./package');
 			{
 				key: '1',
 				name: 'one',
-				method: async function () {
-					console.log(`one: ${JSON.stringify(arguments)}`);
+				method: async function (argument, returned, operations) {
+					console.log(`one: ${argument}`);
+					console.log(`one: ${returned}`);
 					return 'one';
 				},
 				operations: [
 					{
 						key: '2',
 						name: 'two',
-						method: async function () {
-							console.log(`two: ${JSON.stringify(arguments)}`);
+						method: async function (argument, returned, operations) {
+							console.log(`two: ${argument}`);
+							console.log(`two: ${returned}`);
 							return 'two'
 						}
 					},
 					{
 						key: '3',
 						name: 'three',
-						method: async function () {
-							console.log(`three: ${JSON.stringify(arguments)}`);
+						method: async function (argument, returned, operations) {
+							console.log(`three: ${argument}`);
+							console.log(`three: ${returned}`);
 							return 'three'
 						}
 					}

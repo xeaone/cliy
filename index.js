@@ -123,43 +123,49 @@ class Cliy {
 	}
 
 	async execute (operations) {
-		let values = [];
-		let parent = operations.shift();
+		let values = [], value;
+		let parent = operations[0];
+		let children = operations.slice(1);
 
 		if (!parent) {
 			throw new Error(`Cant find operation ${parent.name}`);
 		}
 
-		for (let child of operations) {
+		for (let child of children) {
 
 			if (child.method) {
-				let value = await child.method.apply(null, [child.value].concat(values));
-				values.push(value);
+				value = await child.method.call(null, child.value, value, operations);
 			}
 
 		}
 
 		if (parent.method) {
-			let value = await parent.method.apply(null, values);
-			values.push(value);
+			await parent.method.call(null, parent.value, value, operations);
 		}
 
 	}
 
 	async parse (args) {
+		let value;
 		let result = [];
+		let position = 0;
+		let group = false;
 
 		for (let arg of args) {
 
-			if (arg.slice(0, 2) === '--') {
-				let name = arg.slice(2);
 
+			if (arg.slice(0, 2) === '--') {
+				position = result.length;
+
+				let name = arg.slice(2);
 				let operations = result.length ? result[0].operations : this.operations;
 				let operation = await this.find(name, operations);
 
 				result.push(operation);
 
 			} else if (arg.slice(0, 1) === '-') {
+				position = result.length;
+
 				let keys = arg.split('').slice(1);
 
 				for (let key of keys) {
@@ -173,15 +179,21 @@ class Cliy {
 
 			} else {
 
-				if (result[result.length-1].value) {
-					result[result.length-1].value += (' ' + arg);
-				} else {
-					result[result.length-1].value = arg;
+				for (let i = position; i < result.length; i++) {
+					if (result[i].value) {
+						result[i].value += (' ' + arg);
+					} else {
+						result[i].value = arg;
+					}
 				}
+
 			}
 
-
 		}
+
+		// if (group) {
+		// 	result[0].value = value;
+		// }
 
 		return result;
 	}
