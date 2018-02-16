@@ -32,7 +32,7 @@ class Cliy {
 
 		if (operation) {
 			operations = operation.operations;
-			text += ` ${operation.name} [operations]`
+			text += ` --${operation.name} [operations]`
 		} else {
 			text += ` <operation>`
 			operations = this.operations;
