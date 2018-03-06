@@ -42,8 +42,8 @@ class Cliy {
 
 		for (let operation of operations) {
 			text += '\n      ';
-			if (operation.key) text += `-${operation.key} `;
-			if (operation.name) text += `--${operation.name} `;
+			if (operation.key) text += `-${operation.key}, `;
+			if (operation.name) text += `--${operation.name}   `;
 			if (operation.description) text += `${operation.description} `;
 		}
 
