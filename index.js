@@ -138,7 +138,7 @@ class Cliy {
 		let children = operations.slice(1);
 
 		if (!parent) {
-			throw new Error(`Cant find operation ${parent.name}`);
+			throw new Error(`Cant find operation`);
 		}
 
 		for (let child of children) {
