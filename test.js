@@ -11,7 +11,7 @@ const Package = require('./package');
 
 	await program.setup({
 		name: 'test',
-		// order: '', // TODO added feature
+		// fallback: false,
 		version: Package.version,
 		operations: [
 			{

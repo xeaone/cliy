@@ -3,6 +3,7 @@ class Cliy {
 
 	constructor (data) {
 
+		this.fallback = true;
 		this.name = 'program';
 		this.version = '0.0.0';
 
@@ -71,6 +72,7 @@ class Cliy {
 		data = data || {};
 		this.name = data.name || this.name;
 		this.version = data.version || this.version;
+		this.fallback = data.fallback === undefined ? this.fallback : data.fallback;
 		if (data.operations) await this.add(data.operations);
 	}
 
@@ -138,7 +140,7 @@ class Cliy {
 		let children = operations.slice(1);
 
 		if (!parent) {
-			throw new Error(`Cant find operation`);
+			throw new Error('Operation parameter required');
 		}
 
 		for (let child of children) {
@@ -229,7 +231,7 @@ class Cliy {
 			return data.key === 'h' || data.name === 'help';
 		});
 
-		if (help) {
+		if (help || !operations.length && this.fallback) {
 
 			if (operations.length === 1) {
 				await this._help();

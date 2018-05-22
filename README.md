@@ -8,6 +8,7 @@ Command Line Interface Library.
 ## API
 - `name: String` (default: program)
 - `version: String` (default: 0.0.0)
+- `fallback: Boolean` (default: true) Will print the help if no operation arguments.
 - `operations: Array`
 	- `operation: Object`
 		- `key: String`
