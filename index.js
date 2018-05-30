@@ -1,5 +1,8 @@
+'use strict';
 
-class Cliy {
+const Color = require('./lib/color.js');
+
+module.exports = class Cliy {
 
 	constructor (data) {
 
@@ -21,6 +24,22 @@ class Cliy {
 		];
 
 		this.setup(data);
+	}
+
+	log (text, names) {
+		Color.log(text, names);
+	}
+
+	info (text, names) {
+		Color.info(text, names);
+	}
+
+	warn (text, names) {
+		Color.warn(text, names);
+	}
+
+	error (text, names) {
+		Color.error(text, names);
 	}
 
 	async _version () {
@@ -162,31 +181,34 @@ class Cliy {
 
 	async parse (args) {
 		let value;
-		let result = [];
 		let position = 0;
-		let group = false;
+		
+		const result = [];
 
 		for (let arg of args) {
-
 
 			if (arg.slice(0, 2) === '--') {
 				position = result.length;
 
-				let name = arg.slice(2);
-				let operations = result.length ? result[0].operations : this.operations;
-				let operation = await this.find(name, operations);
+				const name = arg.slice(2);
+				const operations = result.length ? result[0].operations : this.operations;
+				const operation = await this.find(name, operations);
 
 				result.push(operation);
 
 			} else if (arg.slice(0, 1) === '-') {
 				position = result.length;
 
-				let keys = arg.split('').slice(1);
+				const keys = arg.split('').slice(1);
 
 				for (let key of keys) {
 
-					let operations = result.length ? result[0].operations : this.operations;
-					let operation = await this.find(key, operations);
+					const operations = result.length ? result[0].operations : this.operations;
+					const operation = await this.find(key, operations);
+
+					if (!operation) {
+						throw new Error('Operation name invalid');
+					}
 
 					result.push(operation);
 
@@ -206,10 +228,6 @@ class Cliy {
 
 		}
 
-		// if (group) {
-		// 	result[0].value = value;
-		// }
-
 		return result;
 	}
 
@@ -219,13 +237,7 @@ class Cliy {
 		this.path = argv[0];
 		this.file = argv[1];
 
-		let operations = await this.parse(argv.slice(2));
-
-		// operations.sort(function (a, b) {
-		// 	console.log(a);
-		// 	console.log(b);
-		// 	return 0;
-		// });
+		const operations = await this.parse(argv.slice(2));
 
 		let help = operations.find(function (data) {
 			return data.key === 'h' || data.name === 'help';
@@ -246,5 +258,3 @@ class Cliy {
 	}
 
 }
-
-module.exports = Cliy;

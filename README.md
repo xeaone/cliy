@@ -36,6 +36,51 @@ Command Line Interface Library.
 	- `args: Array`
 - `run: AsyncFunction`
 	- `arguments: process.argv`
+- `log: Function` Will print to console with color and style.
+	- `text: String`
+	- `colors: Array`
+- `info: Function` Will print to console with color and style. (Default color `green`)
+	- `text: String`
+	- `colors: Array`
+- `warn: Function` Will print to console with color and style. (Default color `yellow`)
+	- `text: String`
+	- `colors: Array`
+- `error: Function` Will print to console with color and style. (Default color `red`)
+	- `text: String`
+	- `colors: Array`
+
+## Colors
+- Style
+	- reset
+	- bold
+	- dim
+	- italic
+	- underline
+	- blink
+	- inverse
+	- hidden
+	- strike
+- Foreground
+	- black
+	- red
+	- green
+	- yellow
+	- blue
+	- magenta
+	- cyan
+	- white
+	- gray
+	- grey
+- Background
+	- bgBlack
+	- bgRed
+	- bgGreen
+	- bgYellow
+	- bgBlue
+	- bgMagenta
+	- bgCyan
+	- bgWhite
+
 
 ## Authors
 [AlexanderElias](https://github.com/AlexanderElias)

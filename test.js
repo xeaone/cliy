@@ -18,8 +18,8 @@ const Package = require('./package');
 				key: '1',
 				name: 'one',
 				method: async function (argument, values) {
-					console.log(`one: ${argument}`);
-					console.log(`one: ${JSON.stringify(values)}`);
+					program.log(`one: ${argument}`, ['green', 'bgWhite', 'bold']);
+					program.log(`one: ${JSON.stringify(values)}`, ['white', 'bgBlack', 'underline']);
 					return 'one';
 				},
 				operations: [
@@ -27,8 +27,8 @@ const Package = require('./package');
 						key: '2',
 						name: 'two',
 						method: async function (argument, values) {
-							console.log(`two: ${argument}`);
-							console.log(`two: ${JSON.stringify(values)}`);
+							program.log(`two: ${argument}`, ['blue', 'bgGreen', 'strike']);
+							program.log(`two: ${JSON.stringify(values)}`, ['cyan', 'bgWhite', 'italic']);
 							return 'two'
 						}
 					},
@@ -36,8 +36,8 @@ const Package = require('./package');
 						key: '3',
 						name: 'three',
 						method: async function (argument, values) {
-							console.log(`three: ${argument}`);
-							console.log(`three: ${JSON.stringify(values)}`);
+							program.info(`three: ${argument}`);
+							program.error(`three: ${JSON.stringify(values)}`);
 							return 'three'
 						}
 					}
