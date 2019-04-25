@@ -6,24 +6,32 @@ module.exports = class Cliy {
 
 	constructor (data) {
 
-		this.fallback = true;
-		this.name = 'program';
-		this.version = '0.0.0';
+		this._fallback = true;
+		this._name = 'program';
+		this._version = '0.0.0';
 
 		this.operations = [
 			{
 				key: 'v',
 				name: 'version',
-				method: this._version.bind(this)
+				method: this.version.bind(this)
 			},
 			{
 				key: 'h',
 				name: 'help',
-				method: this._help.bind(this)
+				method: this.help.bind(this)
 			}
 		];
 
 		this.setup(data);
+	}
+
+	async setup (data) {
+		data = data || {};
+		this._name = data.name || this._name;
+		this._version = data.version || this._version;
+		this._fallback = data.fallback === undefined ? this._fallback : data.fallback;
+		if (data.operations) await this.add(data.operations);
 	}
 
 	log (text, names) {
@@ -42,11 +50,11 @@ module.exports = class Cliy {
 		Color.error(text, names);
 	}
 
-	async _version () {
-		console.log(`${this.version}`);
+	async version () {
+        return `${this._version}`;
 	}
 
-	async _help (operation) {
+	async help (operation) {
 		let operations;
 		let text = `\n   Usage: ${this.name}`;
 
@@ -69,38 +77,33 @@ module.exports = class Cliy {
 
 		text += '\n';
 
-		console.log(text);
+        return text;
 	}
 
-	async _defaults (data) {
+	async defaults (data) {
 		if (!data.operations || !data.operations.length) return;
 
 		data.operations.unshift({
 			key: 'h',
 			name: 'help',
-			method: this._help.bind(this, data)
+			method: this.help.bind(this, data)
 		});
 
-		for (let operation of data.operations) {
-			this._defaults(operation);
+		for (const operation of data.operations) {
+			this.defaults(operation);
 		}
 
 	}
 
-	async setup (data) {
-		data = data || {};
-		this.name = data.name || this.name;
-		this.version = data.version || this.version;
-		this.fallback = data.fallback === undefined ? this.fallback : data.fallback;
-		if (data.operations) await this.add(data.operations);
-	}
-
 	async has (data, operations) {
-		if (!data) throw new Error('Missing name or key parameter');
+
+		if (!data) {
+            throw new Error('Cliy.has - name or key argument required');
+        }
 
 		operations = operations || this.operations;
 
-		for (let operation of operations) {
+		for (const operation of operations) {
 			if (data === 'h' || data === 'help' || operation.name === data || operation.key === data) {
 				return true;
 			}
@@ -110,11 +113,14 @@ module.exports = class Cliy {
 	}
 
 	async find (data, operations) {
-		if (!data) throw new Error('Missing name or key parameter');
+
+		if (!data) {
+            throw new Error('Cliy.find - name or key argument required');
+        }
 
 		operations = operations || this.operations;
 
-		for (let operation of operations) {
+		for (const operation of operations) {
 			if (operation.name === data || operation.key === data) {
 				return operation;
 			}
@@ -124,49 +130,57 @@ module.exports = class Cliy {
 	}
 
 	async add (data, operations) {
-		if (!data || typeof data !== 'object') throw new Error('Operation required');
+
+		if (!data || typeof data !== 'object') {
+            throw new Error('Cliy.add - operation required');
+        }
 
 		operations = operations || this.operations;
 
 		if (data.constructor === Array) {
-			for (let operation of data) {
+			for (const operation of data) {
 				await this.add(operation, operations);
 			}
 		} else if (data.constructor === Object) {
-			if (!data.name) throw new Error('Operation name required');
+
+            if (!data.name) {
+                throw new Error('Cliy.add - operation name required');
+            }
 
 			if (data.key) {
-				let keyExists = await this.has(data.key);
-				if (keyExists) throw new Error('Operation key exists');
+				const exists = await this.has(data.key);
+				if (exists) throw new Error('Cliy.add - operation key exists');
 			}
 
-			let nameExists = await this.has(data.name);
-			if (nameExists) throw new Error('Operation name exists');
+            if (data.name) {
+    			const exists = await this.has(data.name);
+    			if (exists) throw new Error('Cliy.add - operation name exists');
+            }
 
-			await this._defaults(data);
+			await this.defaults(data);
 
 			operations.push(data);
 		} else {
-			throw new Error('Operation type invalid');
+			throw new Error('Cliy.add - operation type invalid');
 		}
 
 	}
 
 	async execute (operations) {
-		let values = {};
 		let value, name;
-		let parent = operations[0];
-		let children = operations.slice(1);
+		const values = {};
+		const parent = operations[0];
+		const children = operations.slice(1);
 
 		if (!parent) {
-			throw new Error('Operation parameter required');
+			throw new Error('Cliy.execute - operation parameter required');
 		}
 
-		for (let child of children) {
+		for (const child of children) {
 
 			if (child.method) {
 				if (name) values[name] = value;
-				value = await child.method.call(null, child.value, values);
+				value = await child.method.call(this, child.value, values);
 				name = child.name;
 			}
 
@@ -174,7 +188,7 @@ module.exports = class Cliy {
 
 		if (parent.method) {
 			if (name) values[name] = value;
-			await parent.method.call(null, parent.value, values);
+			await parent.method.call(this, parent.value, values);
 		}
 
 	}
@@ -182,12 +196,12 @@ module.exports = class Cliy {
 	async parse (args) {
 		let value;
 		let position = 0;
-		
+
 		const result = [];
 
 		for (let arg of args) {
 
-			if (arg.slice(0, 2) === '--') {
+			if (arg.startsWith('--')) {
 				position = result.length;
 
 				const name = arg.slice(2);
@@ -196,18 +210,18 @@ module.exports = class Cliy {
 
 				result.push(operation);
 
-			} else if (arg.slice(0, 1) === '-') {
+			} else if (arg.startsWith('-')) {
 				position = result.length;
 
 				const keys = arg.split('').slice(1);
 
-				for (let key of keys) {
+				for (const key of keys) {
 
 					const operations = result.length ? result[0].operations : this.operations;
 					const operation = await this.find(key, operations);
 
 					if (!operation) {
-						throw new Error('Operation name invalid');
+						throw new Error('Cliy.parse - operation name invalid');
 					}
 
 					result.push(operation);
@@ -239,16 +253,18 @@ module.exports = class Cliy {
 
 		const operations = await this.parse(argv.slice(2));
 
-		let help = operations.find(function (data) {
+		const help = operations.find(function (data) {
 			return data.key === 'h' || data.name === 'help';
 		});
 
 		if (help || !operations.length && this.fallback) {
 
 			if (operations.length === 1) {
-				await this._help();
+				const data = await this.help();
+                console.log(data);
 			} else {
-				await this._help(operations[0]);
+				const data = await this.help(operations[0]);
+                console.log(data);
 			}
 
 		} else {
