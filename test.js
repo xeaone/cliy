@@ -3,7 +3,7 @@
 const Cliy = require('./index');
 const Package = require('./package');
 
-// node test -12 test la
+// node test -abc foo bar
 
 (async function() {
 
@@ -15,29 +15,33 @@ const Package = require('./package');
 		version: Package.version,
 		operations: [
 			{
-				key: '1',
+				key: 'a',
 				name: 'one',
+                values: [ 'v1', 'v2' ],
 				method: async function (argument, values) {
-					program.log(`one: ${argument}`, ['green', 'bgWhite', 'bold']);
-					program.log(`one: ${JSON.stringify(values)}`, ['white', 'bgBlack', 'underline']);
+                    console.log(arguments);
+					// program.log(`one: ${argument}`, ['green', 'bgWhite', 'bold']);
+					// program.log(`one: ${JSON.stringify(values)}`, ['white', 'bgBlack', 'underline']);
 					return 'one';
 				},
 				operations: [
 					{
-						key: '2',
+						key: 'b',
 						name: 'two',
 						method: async function (argument, values) {
-							program.log(`two: ${argument}`, ['blue', 'bgGreen', 'strike']);
-							program.log(`two: ${JSON.stringify(values)}`, ['cyan', 'bgWhite', 'italic']);
+                            console.log(arguments);
+							// program.log(`two: ${argument}`, ['blue', 'bgGreen', 'strike']);
+							// program.log(`two: ${JSON.stringify(values)}`, ['cyan', 'bgWhite', 'italic']);
 							return 'two'
 						}
 					},
 					{
-						key: '3',
+						key: 'c',
 						name: 'three',
 						method: async function (argument, values) {
-							program.info(`three: ${argument}`);
-							program.error(`three: ${JSON.stringify(values)}`);
+                            console.log(arguments);
+							// program.info(`three: ${argument}`);
+							// program.error(`three: ${JSON.stringify(values)}`);
 							return 'three'
 						}
 					}

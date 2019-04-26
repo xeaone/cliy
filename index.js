@@ -6,20 +6,25 @@ module.exports = class Cliy {
 
 	constructor (data) {
 
+        this._method = null;
 		this._fallback = true;
 		this._name = 'program';
 		this._version = '0.0.0';
 
 		this.operations = [
 			{
-				key: 'v',
-				name: 'version',
-				method: this.version.bind(this)
-			},
-			{
 				key: 'h',
 				name: 'help',
-				method: this.help.bind(this)
+				method: async function () {
+                    this.log(await this.help());
+                }
+			},
+			{
+				key: 'v',
+				name: 'version',
+				method: async function () {
+                    this.log(await this.version());
+                }
 			}
 		];
 
@@ -29,6 +34,7 @@ module.exports = class Cliy {
 	async setup (data) {
 		data = data || {};
 		this._name = data.name || this._name;
+		this._method = data.method || this._method;
 		this._version = data.version || this._version;
 		this._fallback = data.fallback === undefined ? this._fallback : data.fallback;
 		if (data.operations) await this.add(data.operations);
@@ -55,20 +61,22 @@ module.exports = class Cliy {
 	}
 
 	async help (operation) {
-		let operations;
-		let text = `\n   Usage: ${this.name}`;
+		let text = `\n   Usage: ${this._name}`;
+
+        const operations = operation ? [{
+            key: 'h',
+            name: 'help',
+        }].concat(operation.operations || []) : this.operations;
 
 		if (operation) {
-			operations = operation.operations;
 			text += ` --${operation.name} [operations]`
 		} else {
 			text += ` <operation>`
-			operations = this.operations;
 		}
 
 		text += ' [...]\n\n   Operations:';
 
-		for (let operation of operations) {
+		for (const operation of operations) {
 			text += '\n      ';
 			if (operation.key) text += `-${operation.key}, `;
 			if (operation.name) text += `--${operation.name}   `;
@@ -80,86 +88,42 @@ module.exports = class Cliy {
         return text;
 	}
 
-	async defaults (data) {
-		if (!data.operations || !data.operations.length) return;
-
-		data.operations.unshift({
-			key: 'h',
-			name: 'help',
-			method: this.help.bind(this, data)
-		});
-
-		for (const operation of data.operations) {
-			this.defaults(operation);
-		}
-
-	}
-
-	async has (data, operations) {
-
-		if (!data) {
-            throw new Error('Cliy.has - name or key argument required');
-        }
-
-		operations = operations || this.operations;
-
-		for (const operation of operations) {
-			if (data === 'h' || data === 'help' || operation.name === data || operation.key === data) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	async find (data, operations) {
-
-		if (!data) {
-            throw new Error('Cliy.find - name or key argument required');
-        }
-
-		operations = operations || this.operations;
-
-		for (const operation of operations) {
-			if (operation.name === data || operation.key === data) {
-				return operation;
-			}
-		}
-
-		return null;
-	}
-
-	async add (data, operations) {
-
+	async add (data) {
 		if (!data || typeof data !== 'object') {
             throw new Error('Cliy.add - operation required');
-        }
+        } else if (data.constructor === Array) {
 
-		operations = operations || this.operations;
-
-		if (data.constructor === Array) {
 			for (const operation of data) {
-				await this.add(operation, operations);
+				await this.add(operation);
 			}
+
 		} else if (data.constructor === Object) {
 
             if (!data.name) {
                 throw new Error('Cliy.add - operation name required');
             }
 
-			if (data.key) {
-				const exists = await this.has(data.key);
-				if (exists) throw new Error('Cliy.add - operation key exists');
-			}
+    		if (data.key === 'h' || data.key === 'v') {
+                throw new Error(`Cliy.add - reserved operation key ${data.key}`);
+    		}
 
-            if (data.name) {
-    			const exists = await this.has(data.name);
-    			if (exists) throw new Error('Cliy.add - operation name exists');
-            }
+    		if (data.name === 'help' || data.name === 'version') {
+                throw new Error(`Cliy.add - reserved operation name ${data.name}`);
+    		}
 
-			await this.defaults(data);
+    		for (const operation of this.operations) {
 
-			operations.push(data);
+    			if (data.key === operation.key) {
+                    throw new Error(`Cliy.add - operation key exists ${data.key}`);
+    			}
+
+    			if (data.name === operation.name) {
+                    throw new Error(`Cliy.add - operation name exists ${data.name}`);
+    			}
+
+    		}
+
+			this.operations.push(data);
 		} else {
 			throw new Error('Cliy.add - operation type invalid');
 		}
@@ -167,82 +131,25 @@ module.exports = class Cliy {
 	}
 
 	async execute (operations) {
-		let value, name;
-		const values = {};
-		const parent = operations[0];
-		const children = operations.slice(1);
+        const options = operations[0].options || {};
+        const results = operations[0].results || {};
+        const parameters = operations[0].parameters || [];
 
-		if (!parent) {
-			throw new Error('Cliy.execute - operation parameter required');
-		}
+        let operation;
+        while (operation = operations.pop()) {
 
-		for (const child of children) {
+			if (operation.method) {
 
-			if (child.method) {
-				if (name) values[name] = value;
-				value = await child.method.call(this, child.value, values);
-				name = child.name;
-			}
+				const result = await operation.method.apply(this, [options, parameters, results]);
 
-		}
-
-		if (parent.method) {
-			if (name) values[name] = value;
-			await parent.method.call(this, parent.value, values);
-		}
-
-	}
-
-	async parse (args) {
-		let value;
-		let position = 0;
-
-		const result = [];
-
-		for (let arg of args) {
-
-			if (arg.startsWith('--')) {
-				position = result.length;
-
-				const name = arg.slice(2);
-				const operations = result.length ? result[0].operations : this.operations;
-				const operation = await this.find(name, operations);
-
-				result.push(operation);
-
-			} else if (arg.startsWith('-')) {
-				position = result.length;
-
-				const keys = arg.split('').slice(1);
-
-				for (const key of keys) {
-
-					const operations = result.length ? result[0].operations : this.operations;
-					const operation = await this.find(key, operations);
-
-					if (!operation) {
-						throw new Error('Cliy.parse - operation name invalid');
-					}
-
-					result.push(operation);
-
-				}
-
-			} else {
-
-				for (let i = position; i < result.length; i++) {
-					if (result[i].value) {
-						result[i].value += (' ' + arg);
-					} else {
-						result[i].value = arg;
-					}
-				}
+                if (result !== undefined) {
+                    results[operation.name] = result;
+                }
 
 			}
 
-		}
+        }
 
-		return result;
 	}
 
 	async run (argv) {
@@ -251,26 +158,91 @@ module.exports = class Cliy {
 		this.path = argv[0];
 		this.file = argv[1];
 
-		const operations = await this.parse(argv.slice(2));
+		let value;
+		let position = 0;
+		const result = [];
+        const args = argv.slice(2);
 
-		const help = operations.find(function (data) {
-			return data.key === 'h' || data.name === 'help';
-		});
+		for (const arg of args) {
 
-		if (help || !operations.length && this.fallback) {
+			if (arg.startsWith('--')) {
+				position = result.length;
 
-			if (operations.length === 1) {
-				const data = await this.help();
-                console.log(data);
+				const name = arg.slice(2);
+
+				if (name === 'help') {
+                    this.log(await this.help());
+                    return;
+				}
+
+				const operations = this.operations;
+				const operation = operations.find(function (operation) {
+                    return operation.key === key;
+                });
+
+                if (!operation) {
+                    this.log(`${this._name}: invalid operation ${nane}`);
+                    return;
+                }
+
+				result.push(operation);
+
+			} else if (arg.startsWith('-')) {
+				position = result.length;
+
+				const keys = arg.split('').slice(1);
+
+                let previous;
+
+				for (const key of keys) {
+
+                    if (key === 'h') {
+                        this.log(await this.help(previous));
+                        return;
+                    }
+
+					const operations = previous && previous.operations ? previous.operations : this.operations;
+					const operation = operations.find(function (operation) {
+                        return operation.key === key;
+                    });
+
+                    if (!operation) {
+                        this.log(`${this._name}: invalid operation ${key}`);
+                        return;
+                    }
+
+                    previous = operation.operations ? operation : previous;
+
+					result.push(operation);
+				}
+
 			} else {
-				const data = await this.help(operations[0]);
-                console.log(data);
+                const operation = result[position];
+
+                operation.options = operation.options || {};
+                operation._values = operation._values || operation.values || [];
+
+                if (operation._values) {
+                    const name = operation._values.shift();
+                    console.log(name);
+                    if (name) {
+                        operation.options[name] = arg;
+                    } else {
+                        operation.parameters = operation.parameters || [];
+                        operation.parameters.push(arg);
+                    }
+                }
+
 			}
 
-		} else {
-			await this.execute(operations)
 		}
 
+        if (!result.length) {
+            this.log(await this.help());
+            return;
+        }
+
+        await this.execute(result);
 	}
 
 }
