@@ -4,7 +4,8 @@
 	"description": "Command Line Interface Library",
 	"main": "index.js",
 	"scripts": {
-		"t": "node test -abc foo bar"
+		"t": "node test -abc foo bar",
+		"test": "node test -abc foo bar"
 	},
 	"keywords": [
 		"cli",
