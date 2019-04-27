@@ -1,11 +1,10 @@
 {
 	"name": "cliy",
-	"version": "1.6.2",
+	"version": "2.0.0",
 	"description": "Command Line Interface Library",
 	"main": "index.js",
 	"scripts": {
-		"t": "node test -abc foo bar",
-		"test": "node test -abc foo bar"
+		"test": "node example.js -abc foo bar parm goo=ga"
 	},
 	"keywords": [
 		"cli",

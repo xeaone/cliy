@@ -1,6 +1,6 @@
 
 # Cliy
-Command Line Interface Library.
+Command Line Interface Library. [example](https://github.com/vokeio/cliy/blob/master/example.js)
 
 ## Features
 - Auto created help menus
@@ -8,17 +8,17 @@ Command Line Interface Library.
 ## API
 - `name: String` (default: program)
 - `version: String` (default: 0.0.0)
-- `fallback: Boolean` (default: true) Will print the help if no operation arguments.
 - `operations: Array`
 	- `operation: Object`
 		- `key: String`
 		- `name: String`
+		- `values: Array<String>`
 		- `operations: Array`
 		- `description: String`
-		- `method: AsyncFunction`
-			- `argument: String` The argument passed in by the user.
-			- `values: Object` The name value pair of the returned values from previous methods.
-			<!-- - `operations: Array` The operations in order of invocation. -->
+		- `handler: AsyncFunction`
+			- `values: Object` The name value pair of the generated from operation.values and the non named arguments.
+			- `results: Object` The name value pair of the returned values from previous operation.
+			- `parameters: Array` The remaining arguments from executed operation.
 - `setup: AsyncFunction`
 	- `options: Object`
 - `has: AsyncFunction`
@@ -32,8 +32,8 @@ Command Line Interface Library.
 - `execute: AsyncFunction`
 	- `operations: Array`
 		- `operation: Object`
-- `parse: AsyncFunction`
-	- `args: Array`
+<!-- - `parse: AsyncFunction`
+	- `args: Array` -->
 - `run: AsyncFunction`
 	- `arguments: process.argv`
 - `log: Function` Will print to console with color and style.
@@ -81,9 +81,8 @@ Command Line Interface Library.
 	- bgCyan
 	- bgWhite
 
-
 ## Authors
-[AlexanderElias](https://github.com/AlexanderElias)
+[Vokeio](https://github.com/vokeio)
 
 ## License
 [Why You Should Choose MPL-2.0](http://veldstra.org/2016/12/09/you-should-choose-mpl2-for-your-opensource-project.html)

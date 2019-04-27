@@ -6,8 +6,6 @@ module.exports = class Cliy {
 
 	constructor (data) {
 
-        this._method = null;
-		this._fallback = true;
 		this._name = 'program';
 		this._version = '0.0.0';
 
@@ -15,14 +13,14 @@ module.exports = class Cliy {
 			{
 				key: 'h',
 				name: 'help',
-				method: async function () {
+				handler: async function () {
                     this.log(await this.help());
                 }
 			},
 			{
 				key: 'v',
 				name: 'version',
-				method: async function () {
+				handler: async function () {
                     this.log(await this.version());
                 }
 			}
@@ -34,9 +32,7 @@ module.exports = class Cliy {
 	async setup (data) {
 		data = data || {};
 		this._name = data.name || this._name;
-		this._method = data.method || this._method;
 		this._version = data.version || this._version;
-		this._fallback = data.fallback === undefined ? this._fallback : data.fallback;
 		if (data.operations) await this.add(data.operations);
 	}
 
@@ -69,7 +65,7 @@ module.exports = class Cliy {
         }].concat(operation.operations || []) : this.operations;
 
 		if (operation) {
-			text += ` --${operation.name} [operations]`
+			text += ` {-${operation.key} --${operation.name}} [operations]`
 		} else {
 			text += ` <operation>`
 		}
@@ -131,19 +127,19 @@ module.exports = class Cliy {
 	}
 
 	async execute (operations) {
-        const options = operations[0].options || {};
-        const results = operations[0].results || {};
-        const parameters = operations[0].parameters || [];
+        const _values = operations[0]._values || {};
+        const _results = operations[0]._results || {};
+        const _parameters = operations[0]._parameters || [];
 
         let operation;
         while (operation = operations.pop()) {
 
-			if (operation.method) {
+			if (operation.handler) {
 
-				const result = await operation.method.apply(this, [options, parameters, results]);
+				const result = await operation.handler.apply(this, [ _values, _results, _parameters ]);
 
                 if (result !== undefined) {
-                    results[operation.name] = result;
+                    _results[operation.name] = result;
                 }
 
 			}
@@ -158,10 +154,10 @@ module.exports = class Cliy {
 		this.path = argv[0];
 		this.file = argv[1];
 
-		let value;
-		let position = 0;
 		const result = [];
         const args = argv.slice(2);
+		let value, values, position = 0;
+
 
 		for (const arg of args) {
 
@@ -219,18 +215,18 @@ module.exports = class Cliy {
 			} else {
                 const operation = result[position];
 
-                operation.options = operation.options || {};
-                operation._values = operation._values || operation.values || [];
+                values = values || operation.values || [];
+                operation._values = operation._values || {};
 
-                if (operation._values) {
-                    const name = operation._values.shift();
-                    console.log(name);
-                    if (name) {
-                        operation.options[name] = arg;
-                    } else {
-                        operation.parameters = operation.parameters || [];
-                        operation.parameters.push(arg);
-                    }
+                if (arg.includes('=')) {
+                    const parts = arg.split('=');
+                    operation._values[parts[0]] = parts.slice(1).join('=');
+                } else if (values.length) {
+                    const name = values.shift();
+                    operation._values[name] = arg;
+                } else {
+                    operation._parameters = operation._parameters || [];
+                    operation._parameters.push(arg);
                 }
 
 			}
