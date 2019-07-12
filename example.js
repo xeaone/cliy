@@ -20,8 +20,6 @@ const Package = require('./package');
                     console.log(`a results: ${JSON.stringify(results)}`);
                     console.log(`a parameters: ${JSON.stringify(parameters)}`);
                     console.log(`\n`);
-					// program.log(`one: ${argument}`, ['green', 'bgWhite', 'bold']);
-					// program.log(`one: ${JSON.stringify(values)}`, ['white', 'bgBlack', 'underline']);
 					return 'one';
 				},
 				operations: [
@@ -33,8 +31,6 @@ const Package = require('./package');
                             console.log(`b results: ${JSON.stringify(results)}`);
                             console.log(`b parameters: ${JSON.stringify(parameters)}`);
                             console.log(`\n`);
-							// program.log(`two: ${argument}`, ['blue', 'bgGreen', 'strike']);
-							// program.log(`two: ${JSON.stringify(values)}`, ['cyan', 'bgWhite', 'italic']);
 							return 'two'
 						}
 					},
@@ -46,12 +42,22 @@ const Package = require('./package');
                             console.log(`c results: ${JSON.stringify(results)}`);
                             console.log(`c parameters: ${JSON.stringify(parameters)}`);
                             console.log(`\n`);
-							// program.info(`three: ${argument}`);
-							// program.error(`three: ${JSON.stringify(values)}`);
 							return 'three'
 						}
 					}
 				]
+			},
+            {
+				key: 'd',
+				name: 'four',
+                values: [ 'bat' ],
+                async handler (values, results, parameters) {
+                    console.log(`d values: ${JSON.stringify(values)}`);
+                    console.log(`d results: ${JSON.stringify(results)}`);
+                    console.log(`d parameters: ${JSON.stringify(parameters)}`);
+                    console.log(`\n`);
+					return 'four';
+				}
 			}
 		]
 	});

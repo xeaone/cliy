@@ -127,16 +127,30 @@ module.exports = class Cliy {
 	}
 
 	async execute (operations) {
-        const _values = operations[0]._values || {};
-        const _results = operations[0]._results || {};
-        const _parameters = operations[0]._parameters || [];
 
+        let _values;
+        let _results;
+        let _parameters;
         let operation;
-        while (operation = operations.pop()) {
+
+        // while (operation = operations.pop()) {
+        for (let i = operations.length-1; i > 0; i--) {
+            const operation = operations[i];
+
+            // if (operation._position === operations.length) {
+            //     _values = {};
+            //     _results = {};
+            //     _parameters = [];
+            // } else {
+                _values = operations[operation._position]._values || {};
+                _results = operations[operation._position]._results || {};
+                _parameters = operations[operation._position]._parameters || [];
+            // }
 
 			if (operation.handler) {
 
 				const result = await operation.handler.apply(this, [ _values, _results, _parameters ]);
+                console.log(result);
 
                 if (result !== undefined) {
                     _results[operation.name] = result;
@@ -157,7 +171,6 @@ module.exports = class Cliy {
 		const result = [];
         const args = argv.slice(2);
 		let value, values, position = 0;
-
 
 		for (const arg of args) {
 
@@ -181,8 +194,8 @@ module.exports = class Cliy {
                     return;
                 }
 
+                operation._position = position
 				result.push(operation);
-
 			} else if (arg.startsWith('-')) {
 				position = result.length;
 
@@ -207,25 +220,46 @@ module.exports = class Cliy {
                         return;
                     }
 
+                    operation._position = position
                     previous = operation.operations ? operation : previous;
 
 					result.push(operation);
 				}
 
 			} else {
+                result[position] = result[position] || {}
+
                 const operation = result[position];
 
-                values = values || operation.values || [];
+                values = operation.values || [];
+                // values = values || operation.values || [];
                 operation._values = operation._values || {};
+                operation._parameters = operation._parameters || [];
 
+                // need previous operation
                 if (arg.includes('=')) {
+
                     const parts = arg.split('=');
-                    operation._values[parts[0]] = parts.slice(1).join('=');
+                    const value = values.find(function (value) {
+                        if (typeof value === 'string' && value === parts[0]) {
+                            return true;
+                        } else if (typeof value === 'object' && value.name === parts[0]) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    });
+
+                    if (value) {
+                        operation._values[parts[0]] = parts[1];
+                    } else {
+                        operation._parameters.push(arg);
+                    }
+
                 } else if (values.length) {
                     const name = values.shift();
                     operation._values[name] = arg;
                 } else {
-                    operation._parameters = operation._parameters || [];
                     operation._parameters.push(arg);
                 }
 
