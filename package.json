@@ -17,10 +17,10 @@
 	"license": "MPL-2.0",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/AlexanderElias/cliy.git"
+		"url": "git+https://github.com/vokeio/cliy.git"
 	},
 	"bugs": {
-		"url": "https://github.com/AlexanderElias/cliy/issues"
+		"url": "https://github.com/vokeio/cliy/issues"
 	},
-	"homepage": "https://github.com/AlexanderElias/cliy#readme"
+	"homepage": "https://github.com/vokeio/cliy#readme"
 }
