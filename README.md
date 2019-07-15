@@ -3,7 +3,57 @@
 Command Line Interface Library. [example](https://github.com/vokeio/cliy/blob/master/example.js)
 
 ## Features
+- Configuration based API
 - Auto created help menus
+
+## Example
+```js
+#!/usr/bin/env node
+const Cliy = require('./index');
+const Package = require('./package');
+
+(async function() {
+
+	const program = new Cliy();
+
+	await program.setup({
+		name: Package.name,
+		version: Package.version,
+		operations: [
+			{
+				key: 'a',
+				name: 'one',
+                description: 'I am an Operation',
+                options: [
+                    'opt1',
+                    { name: 'opt2', description: 'I am an Option' },
+                ],
+                async handler (options, results, parameters) {
+                    console.log(`a options: ${JSON.stringify(values)}`);
+                    console.log(`a results: ${JSON.stringify(results)}`);
+                    console.log(`a parameters: ${JSON.stringify(parameters)}`);
+					return 'one';
+				},
+				operations: [
+					{
+						key: 'b',
+						name: 'two',
+                        async handler (options, results, parameters) {
+                            console.log(`b options: ${JSON.stringify(options)}`);
+                            console.log(`b results: ${JSON.stringify(results)}`);
+                            console.log(`b parameters: ${JSON.stringify(parameters)}`);
+							return 'two'
+						}
+					}
+				]
+			}
+		]
+	});
+
+	await program.run(process.argv);
+
+}()).catch(console.error);
+```
 
 ## API
 - `name: String` (default: program)
@@ -12,13 +62,13 @@ Command Line Interface Library. [example](https://github.com/vokeio/cliy/blob/ma
 	- `operation: Object`
 		- `key: String`
 		- `name: String`
-		- `values: Array<String>`
-		- `operations: Array`
 		- `description: String`
+		- `options: Array<String,Object>`
+		- `operations: Array<Object>`
 		- `handler: AsyncFunction`
-			- `values: Object` The name value pair of the generated from operation.values and the non named arguments.
-			- `results: Object` The name value pair of the returned values from previous operation.
-			- `parameters: Array` The remaining arguments from executed operation.
+			- `options: Object` An object of name value pairs generated from the arguments following an operation.
+			- `results: Object` An object of name value pairs generated from the returned results from an operation.
+			- `parameters: Array` The remaining arguments from an operation.
 - `setup: AsyncFunction`
 	- `options: Object`
 - `has: AsyncFunction`

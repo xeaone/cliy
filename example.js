@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+// node example.js -abc foo bar -d bat=baz
+
 const Cliy = require('./index');
 const Package = require('./package');
 
@@ -14,9 +16,13 @@ const Package = require('./package');
 			{
 				key: 'a',
 				name: 'one',
-                values: [ 'v1', 'v2' ],
-                async handler (values, results, parameters) {
-                    console.log(`a values: ${JSON.stringify(values)}`);
+                description: 'I am an Operation',
+                options: [
+                    'opt1',
+                    { name: 'opt2', description: 'I am an Option' },
+                ],
+                async handler (options, results, parameters) {
+                    console.log(`a options: ${JSON.stringify(values)}`);
                     console.log(`a results: ${JSON.stringify(results)}`);
                     console.log(`a parameters: ${JSON.stringify(parameters)}`);
                     console.log(`\n`);
@@ -26,8 +32,8 @@ const Package = require('./package');
 					{
 						key: 'b',
 						name: 'two',
-                        async handler (values, results, parameters) {
-                            console.log(`b values: ${JSON.stringify(values)}`);
+                        async handler (options, results, parameters) {
+                            console.log(`b options: ${JSON.stringify(options)}`);
                             console.log(`b results: ${JSON.stringify(results)}`);
                             console.log(`b parameters: ${JSON.stringify(parameters)}`);
                             console.log(`\n`);
@@ -37,8 +43,8 @@ const Package = require('./package');
 					{
 						key: 'c',
 						name: 'three',
-                        async handler (values, results, parameters) {
-                            console.log(`c values: ${JSON.stringify(values)}`);
+                        async handler (options, results, parameters) {
+                            console.log(`c options: ${JSON.stringify(options)}`);
                             console.log(`c results: ${JSON.stringify(results)}`);
                             console.log(`c parameters: ${JSON.stringify(parameters)}`);
                             console.log(`\n`);
@@ -50,9 +56,9 @@ const Package = require('./package');
             {
 				key: 'd',
 				name: 'four',
-                values: [ 'bat' ],
-                async handler (values, results, parameters) {
-                    console.log(`d values: ${JSON.stringify(values)}`);
+                options: [ 'bat' ],
+                async handler (options, results, parameters) {
+                    console.log(`d options: ${JSON.stringify(options)}`);
                     console.log(`d results: ${JSON.stringify(results)}`);
                     console.log(`d parameters: ${JSON.stringify(parameters)}`);
                     console.log(`\n`);

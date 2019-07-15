@@ -56,30 +56,43 @@ module.exports = class Cliy {
         return `${this._version}`;
 	}
 
-	async help (operation) {
+	async help (data) {
 		let text = `\n   Usage: ${this._name}`;
 
-        const operations = operation ? [{
-            key: 'h',
-            name: 'help',
-        }].concat(operation.operations || []) : this.operations;
-
-		if (operation) {
-			text += ` {-${operation.key} --${operation.name}} [operations]`
+		if (data) {
+			text += ` {-${data.key} --${data.name}} [operations]`;
 		} else {
 			text += ` <operation>`
+            data = { key: 'h', name: 'help', operations: this.operations };
 		}
 
-		text += ' [...]\n\n   Operations:';
+    	text += ' [...]';
 
-		for (const operation of operations) {
-			text += '\n      ';
-			if (operation.key) text += `-${operation.key}, `;
-			if (operation.name) text += `--${operation.name}   `;
-			if (operation.description) text += `${operation.description} `;
-		}
+        if (data.operations) {
+    		text += '\n\n   Operations:';
+    		for (const operation of data.operations) {
+    			text += '\n      ';
+    			if (operation.key) text += `-${operation.key}, `;
+    			if (operation.name) text += `--${operation.name}, `;
+    			if (operation.description) text += `${operation.description} `;
+    		}
+        }
 
-		text += '\n';
+        if (data.options) {
+    		text += '\n\n   Options:';
+    		for (const option of data.options) {
+    			text += '\n      ';
+                if (typeof option === 'string') {
+                    text += `${option} `;
+                } else {
+        			if (option.key) text += `${option.key}, `;
+        			if (option.name) text += `${option.name}, `;
+        			if (option.description) text += `${option.description} `;
+                }
+    		}
+        }
+
+    	text += '\n';
 
         return text;
 	}
@@ -128,29 +141,21 @@ module.exports = class Cliy {
 
 	async execute (operations) {
 
-        let _values;
+        let _options;
         let _results;
         let _parameters;
         let operation;
 
-        // while (operation = operations.pop()) {
         for (let i = operations.length-1; i > 0; i--) {
             const operation = operations[i];
 
-            // if (operation._position === operations.length) {
-            //     _values = {};
-            //     _results = {};
-            //     _parameters = [];
-            // } else {
-                _values = operations[operation._position]._values || {};
-                _results = operations[operation._position]._results || {};
-                _parameters = operations[operation._position]._parameters || [];
-            // }
+            _options = operations[operation._position]._options || {};
+            _results = operations[operation._position]._results || {};
+            _parameters = operations[operation._position]._parameters || [];
 
 			if (operation.handler) {
 
-				const result = await operation.handler.apply(this, [ _values, _results, _parameters ]);
-                console.log(result);
+				const result = await operation.handler.apply(this, [ _options, _results, _parameters ]);
 
                 if (result !== undefined) {
                     _results[operation.name] = result;
@@ -170,7 +175,7 @@ module.exports = class Cliy {
 
 		const result = [];
         const args = argv.slice(2);
-		let value, values, position = 0;
+		let value, options, position = 0;
 
 		for (const arg of args) {
 
@@ -227,20 +232,18 @@ module.exports = class Cliy {
 				}
 
 			} else {
-                result[position] = result[position] || {}
+                const operation = result[position] = result[position] || {}
 
-                const operation = result[position];
-
-                values = operation.values || [];
-                // values = values || operation.values || [];
-                operation._values = operation._values || {};
+                options = operation.options || [];
+                operation._options = operation._options || {};
                 operation._parameters = operation._parameters || [];
 
                 // need previous operation
+                // need to check duplicate options
                 if (arg.includes('=')) {
 
                     const parts = arg.split('=');
-                    const value = values.find(function (value) {
+                    const option = options.find(function (value) {
                         if (typeof value === 'string' && value === parts[0]) {
                             return true;
                         } else if (typeof value === 'object' && value.name === parts[0]) {
@@ -250,15 +253,15 @@ module.exports = class Cliy {
                         }
                     });
 
-                    if (value) {
-                        operation._values[parts[0]] = parts[1];
+                    if (option) {
+                        operation._options[parts[0]] = parts[1];
                     } else {
                         operation._parameters.push(arg);
                     }
 
-                } else if (values.length) {
-                    const name = values.shift();
-                    operation._values[name] = arg;
+                } else if (options.length) {
+                    const option = options.shift();
+                    operation._options[option.name || option] = arg;
                 } else {
                     operation._parameters.push(arg);
                 }
