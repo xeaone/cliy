@@ -52,6 +52,10 @@ module.exports = class Cliy {
 		Color.error(text, names);
 	}
 
+    mix (text, names) {
+        return Color.mix(text, names);
+    }
+
 	async version () {
         return `${this._version}`;
 	}
@@ -146,7 +150,7 @@ module.exports = class Cliy {
         let _parameters;
         let operation;
 
-        for (let i = operations.length-1; i > 0; i--) {
+        for (let i = operations.length-1; i > -1; i--) {
             const operation = operations[i];
 
             _options = operations[operation._position]._options || {};
