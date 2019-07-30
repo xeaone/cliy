@@ -182,35 +182,34 @@ module.exports = class Cliy {
 		let value, options, position = 0;
 
 		for (const arg of args) {
-
 			if (arg.startsWith('--')) {
 				position = result.length;
 
 				const name = arg.slice(2);
 
 				if (name === 'help') {
-                    this.log(await this.help());
+                    this.log(await this.help(previous));
                     return;
 				}
 
-				const operations = this.operations;
+				const operations = previous && previous.operations ? previous.operations : this.operations;
 				const operation = operations.find(function (operation) {
-                    return operation.key === key;
+                    return operation.name === name;
                 });
 
                 if (!operation) {
-                    this.log(`${this._name}: invalid operation ${nane}`);
+                    this.log(`${this._name}: invalid operation --${nane}`);
                     return;
                 }
 
-                operation._position = position
+                operation._position = position;
+                previous = operation.operations ? operation : previous;
 				result.push(operation);
 			} else if (arg.startsWith('-')) {
+                previous = undefined;
 				position = result.length;
 
 				const keys = arg.split('').slice(1);
-
-                let previous;
 
 				for (const key of keys) {
 
@@ -225,16 +224,14 @@ module.exports = class Cliy {
                     });
 
                     if (!operation) {
-                        this.log(`${this._name}: invalid operation ${key}`);
+                        this.log(`${this._name}: invalid operation -${key}`);
                         return;
                     }
 
-                    operation._position = position
+                    operation._position = position;
                     previous = operation.operations ? operation : previous;
-
 					result.push(operation);
 				}
-
 			} else {
                 const operation = result[position] = result[position] || {}
 
@@ -262,16 +259,13 @@ module.exports = class Cliy {
                     } else {
                         operation._parameters.push(arg);
                     }
-
                 } else if (options.length) {
                     const option = options.shift();
                     operation._options[option.name || option] = arg;
                 } else {
                     operation._parameters.push(arg);
                 }
-
 			}
-
 		}
 
         if (!result.length) {
