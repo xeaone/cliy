@@ -153,9 +153,9 @@ module.exports = class Cliy {
         for (let i = operations.length-1; i > -1; i--) {
             const operation = operations[i];
 
-            _options = operations[operation._position]._options || {};
-            _results = operations[operation._position]._results || {};
-            _parameters = operations[operation._position]._parameters || [];
+            _options = operations[operation._position]._options = operations[operation._position]._options || {};
+            _results = operations[operation._position]._results = operations[operation._position]._results || {};
+            _parameters = operations[operation._position]._parameters = operations[operation._position]._parameters || [];
 
 			if (operation.handler) {
 
@@ -179,7 +179,7 @@ module.exports = class Cliy {
 
 		const result = [];
         const args = argv.slice(2);
-		let value, options, position = 0;
+		let value, options, previous, position = 0;
 
 		for (const arg of args) {
 			if (arg.startsWith('--')) {
